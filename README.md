@@ -4,8 +4,8 @@
 
 This repository contains an early version of a local development environment for an LTI tool called Gradebotics. Although active development has been discontinued, the project is shared to help make LTI tool development easier and more approachable for others.
 
-This setup was inspired by the excellent work of the [ltijs](https://github.com/Cvmcosta/ltijs)
-project and various open-source TypeScript monorepo examples.
+This setup was enabled by [ltijs](https://github.com/Cvmcosta/ltijs)
+and various open-source TypeScript monorepo examples.
 
 What makes this repository unique includes:
 
@@ -17,9 +17,9 @@ What makes this repository unique includes:
 
 The goal was to create a streamlined, developer-friendly environment for building and testing LTI tools locally with Moodle.
 
-This project is provided as-is and may serve best as a reference or starting point rather than a production-ready solution.
+This project is provided as-is and will serve best as a reference or starting point rather than a production-ready solution.
 
-If you have questions, suggestions, or notice any issues, feel free to open an issue — feedback is welcome.
+If you have questions, suggestions, or notice any issues, feel free to open an issue. Feedback is welcome, and I'll do my best to respond promptly.
 
 All code in this repository is released under the MIT License and is free for commercial and non-commercial use.
 
