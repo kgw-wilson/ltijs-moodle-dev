@@ -1,0 +1,71 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true
+  },
+  "extends": [
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "prettier-standard"
+  ],
+  "plugins": [
+    "react",
+    "@typescript-eslint",
+    "react-hooks",
+    "prettier",
+    "simple-import-sort"
+  ],
+  "rules": {
+    "no-use-before-define": "off",
+    "prettier/prettier": [
+      "error",
+      {
+        "endOfLine": "auto",
+        "singleQuote": false
+      }
+    ],
+    "simple-import-sort/exports": "error",
+    "simple-import-sort/imports": [
+      "error",
+      {
+        "groups": [
+          ["^(assert|buffer|child_process|...|perf_hooks)(/.*|$)"],
+          ["^\\w"],
+          ["^(@|config/)(/*|$)"],
+          ["^\\u0000"],
+          ["^\\.\\.(?!/?$)", "^\\.\\./?$"],
+          ["^\\./(?=.*/)(?!/?$)", "^\\.(?!/?$)", "^\\./?$"],
+          ["^.+\\.s?css$"]
+        ]
+      }
+    ],
+    "import/no-anonymous-default-export": [
+      "error",
+      {
+        "allowArrowFunction": true,
+        "allowAnonymousFunction": true
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["frontend/**/*.{ts,tsx}", "frontend/**/*.{ts,tsx}"],
+      "parserOptions": {
+        "project": "./frontend/tsconfig.json"
+      }
+    },
+    {
+      "files": ["backend/**/*.ts", "backend/**/*.ts"],
+      "parserOptions": {
+        "project": "./backend/tsconfig.json"
+      }
+    }
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+# macOS / system files
+.DS_Store
+
+# Dependency folders (these will be rebuilt inside Docker)
+**/node_modules
+
+# Build outputs (let Docker build them)
+**/dist
+**/build
+
+# Markdown
+*.md
+
+# Git repo metadata
+.git
+.gitignore
+
+# Logs
+*.log
+
+# IDE/editor files
+*.swp
+*.swo
+.vscode
+.idea

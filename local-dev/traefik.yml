@@ -1,0 +1,27 @@
+# To mimic production, only communication over https is allowed.
+entryPoints:
+  websecure:
+    address: ":443"
+
+# The Docker provider is used to discover other containers.
+# Only containers with explicit traefik.enable=true labels should be routed.
+# filename must match the volumnes in the docker-compose.yml file.
+providers:
+  docker:
+    exposedByDefault: false
+  file:
+    filename: /etc/traefik/traefik.yml
+
+# Enables the Traefik dashboard at https://traefik.localhost.
+api:
+  dashboard: true
+
+# Set high verbosity for debugging purposes.
+log:
+  level: DEBUG
+
+# Use the certificates in the /certs directory for TLS to enable https.
+tls:
+  certificates:
+    - certFile: "/certs/local.crt"
+      keyFile: "/certs/local.key"

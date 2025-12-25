@@ -1,0 +1,132 @@
+# Use stable version of Docker Compose file format with support for custom networks.
+version: "3.5"
+
+# Network allows Traefik to connect to containers. Bridge is the default, included for clarity.
+# Custom subnet ensures stable container IPs across restarts, preventing issues where certificates
+# issued for the original IP are not valid for the new IP. Private IPs (192.168.x.x) are used
+# within local networks and are not internet-routable.
+networks:
+  web:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.240.0/24
+
+
+services:
+
+  # Traefik is a reverse proxy that automatically routes traffic to containers based on labels.
+  # This setup uses: Docker provider to auto-discover containers via the Docker socket, dev-signed
+  # TLS certificates from ./certs for HTTPS on port 443, a traefik.yml config file, and a web
+  # dashboard accessible at https://traefik.localhost to help debug routing issues.
+  traefik:
+    container_name: traefik
+    image: traefik:latest
+    ports:
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./certs:/certs
+      - ./traefik.yml:/etc/traefik/traefik.yml
+    labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
+    - "traefik.http.routers.traefik.entrypoints=websecure"
+    - "traefik.http.routers.traefik.tls=true"
+    - "traefik.http.routers.traefik.service=api@internal"
+    networks:
+      - web
+
+  # PostgreSQL is used as the database for both Moodle and our platform. The Bitnami image is
+  # used for simplicity and combatibility with the Moodle image. The var POSTGRESQL_PASSWORD
+  # sets the password for the "postgres" superuser account that can access all databases. The
+  # files in docker-entrypoint-initdb.d are automatically run when the container starts.
+  postgresql:
+    container_name: postgresql
+    image: bitnami/postgresql:latest
+    environment:
+      - POSTGRESQL_PASSWORD=password123
+      - ALLOW_EMPTY_PASSWORD=no
+    volumes:
+      - './postgresql_data:/bitnami/postgresql'
+      - './postgresql-initdb.d:/docker-entrypoint-initdb.d'
+    networks:
+      - web
+
+  # Our platform, exposed at https://gradebotics.localhost via Traefik. Uses ../ as build
+  # context since it's meant to be built from the repo root. Database user and password must
+  # match postgresql-initdb.d/init.sql. NODE_EXTRA_CA_CERTS lets the LTI provider trust the
+  # local dev-signed CA for moodle.localhost. LTI_KEY signs cookies/tokens; DEBUG=provider:*
+  # enables verbose logging. extra_hosts maps moodle.localhost to Docker's stable gateway IP
+  # to match the TLS cert.
+  gradebotics:
+    container_name: gradebotics
+    build:
+      context: ../
+      dockerfile: ./local-dev/Dockerfile.gradebotics
+    environment:
+      - PORT=3000
+      - GRADEBOTICS_DATABASE_HOST=postgresql
+      - GRADEBOTICS_DATABASE_NAME=gradebotics
+      - GRADEBOTICS_DATABASE_USER=gb_dev
+      - GRADEBOTICS_DATABASE_PASSWORD=password123
+      - MOODLE_URL=https://moodle.localhost
+      - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/rootCA.pem
+      - LTI_KEY=EXAMPLE-KEY-LOCAL-DEV-ONLY
+      - DEBUG=provider:*
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gradebotics.rule=Host(`gradebotics.localhost`)"
+      - "traefik.http.routers.gradebotics.entrypoints=websecure"
+      - "traefik.http.routers.gradebotics.tls=true"
+      - "traefik.http.services.gradebotics.loadbalancer.server.port=3000"
+    networks:
+      - web
+    extra_hosts:
+      - "moodle.localhost:192.168.240.1"
+    depends_on:
+      - postgresql
+
+  # The Learning Management System (LMS) Moodle, exposed at https://moodle.localhsost via Traefik.
+  # Moodle is used because it is commonly used, has a small image size, and is easy to set up.
+  # The databse name, user, and password must be the same as in postgresql-initdb.d/init.sql.
+  moodle:
+    container_name: moodle
+    image: bitnami/moodle:latest
+    environment:
+      - MOODLE_DATABASE_HOST=postgresql
+      - MOODLE_DATABASE_TYPE=pgsql
+      - MOODLE_DATABASE_PORT_NUMBER=5432
+      - MOODLE_DATABASE_NAME=bitnami_moodle
+      - MOODLE_DATABASE_USER=bn_moodle
+      - MOODLE_DATABASE_PASSWORD=password123
+      - ALLOW_EMPTY_PASSWORD=no
+    volumes:
+      - './moodle_data:/bitnami/moodle'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.moodle.rule=Host(`moodle.localhost`)"
+      - "traefik.http.routers.moodle.entrypoints=websecure"
+      - "traefik.http.routers.moodle.tls=true"
+      - "traefik.http.services.moodle.loadbalancer.server.port=8080"
+    depends_on:
+      - postgresql
+    networks:
+      - web
+
+  # A lightweight database management tool for PostgreSQL, exposed at https://adminer.localhost
+  # via Traefik. restart: always restarts the container if it stops for any reason.
+  adminer:
+    container_name: adminer
+    image: adminer
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=Host(`adminer.localhost`)"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.tls=true"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
+    depends_on:
+      - postgresql
+    networks:
+      - web

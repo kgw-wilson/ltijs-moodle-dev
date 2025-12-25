@@ -1,0 +1,11 @@
+{
+  "name": "shared-models",
+  "version": "1.0.0",
+  "main": "dist/src/index.js",
+  "dependencies": {
+    "zod": "^3.24.3"
+  },
+  "scripts": {
+    "build": "tsc --build tsconfig.json"
+  }
+}

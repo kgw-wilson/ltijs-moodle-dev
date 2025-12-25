@@ -1,0 +1,26 @@
+*~
+
+# macOS / system files
+.DS_Store
+
+# IDE/editor files
+*.swp
+*.swo
+.vscode
+.idea
+
+# Local dev data, dev specific
+local-dev/*_data
+local-dev/*.d/
+
+# Local dev certs, machine specific and not for sharing
+local-dev/certs/*.crt
+local-dev/certs/*.key
+local-dev/certs/*.pem
+
+# Dependency folders (these will be installed by devs/docker)
+**/node_modules
+
+# Build folders and info (no need for git to track)
+**/dist/
+*.tsbuildinfo

@@ -1,0 +1,8 @@
+packages:
+  - "frontend"
+  - "backend"
+  - "shared-models"
+  - "shared-constants"
+  # exclude packages that are inside test directories
+  - "!**/test/**"
+  - "!**/__tests__/**"

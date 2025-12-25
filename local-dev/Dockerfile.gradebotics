@@ -1,0 +1,45 @@
+# Use the same version of Node.js as used by devs locally and in CI for consistency.
+# Slim variant reduces image size and improves build efficiency. Based on Ubuntu.
+FROM node:22.14.0-slim
+
+# Install essential tools, clean up apt cache to reduce image size.
+RUN apt-get update && \
+    apt-get install -y bash ca-certificates curl && \
+    corepack enable && \
+    corepack prepare pnpm@10.9.0 --activate && \
+    rm -rf /var/lib/apt/lists/*
+
+# Adds mkcert's custom root certificate authority so Node.js inside this container
+# trusts moodle.localhost over HTTPS.
+COPY ./local-dev/certs/rootCA.pem /usr/local/share/ca-certificates/rootCA.pem
+
+# Copy wait for it script to wait for the database to be ready
+COPY ./local-dev/wait-for-it.sh app/scripts/wait-for-it.sh
+RUN chmod +x app/scripts/wait-for-it.sh
+
+# Put all application code here to follow convention and keep filesystem organized.
+WORKDIR /app
+
+# Copy entire platform directory for convenience during development.
+# Depends on repo root .dockerignore to exclude unnecessary files.
+COPY ../platform ./platform
+
+WORKDIR /app/platform
+
+# Install dependencies, use lockfile for consistency across builds.
+RUN pnpm install --frozen-lockfile
+
+# Build frontend first so backend can serve the built assets. The ...
+# builds the subproject and all its dependencies in the correct order.
+RUN pnpm --filter frontend... build && \
+    pnpm --filter backend... build
+
+# Set working directory to backend for running the server
+WORKDIR /app/platform/backend
+
+# Expose backend port
+EXPOSE 3000
+
+# Run the compiled backend when the database is ready
+# By default, wait for it will check every 1 second indefinitely
+CMD ["/app/scripts/wait-for-it.sh", "postgresql:5432", "--", "node", "dist/src/index.js"]

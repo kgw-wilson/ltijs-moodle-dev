@@ -1,0 +1,21 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "baseUrl": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "@/*": ["*"]
+    }
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["./dist/**/*"],
+  "references": [
+    {
+      "path": "../shared-models/tsconfig.json"
+    },
+    {
+      "path": "../shared-constants/tsconfig.json"
+    }
+  ]
+}
