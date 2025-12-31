@@ -5,7 +5,7 @@
 This repository contains an early version of a local development environment for an LTI tool called Gradebotics. Although active development has been discontinued, the project is shared to help make LTI tool development easier and more approachable for others.
 
 This setup was enabled by [ltijs](https://github.com/Cvmcosta/ltijs)
-and various open-source TypeScript monorepo examples.
+and various open-source TypeScript monorepo examples such as [SaaS Boilerplate](https://github.com/ixartz/SaaS-Boilerplate).
 
 What makes this repository unique includes:
 
